@@ -1,6 +1,6 @@
 [project]
 name = "seabirdscientific"
-version = "3.0.0a37"
+version = "3.0.0a38"
 description = "Sea-Bird Scientific Community Toolkit"
 readme = "README.md"
 license = "MIT"
@@ -110,5 +110,14 @@ norecursedirs = [
   "__pycache__",
   "resources",
   "results",
+]
+# Warnings fail the tests, so deprecations in dependencies surface early. CI installs exact
+# versions from uv.lock (except the lowest-dependencies job), so new upstream releases can't
+# break it unexpectedly. List tolerated third-party warnings here with a reason.
+filterwarnings = [
+  "error",
+  # seawater warns on import that it's deprecated, but eos80_* intentionally use it for
+  # SeaSoft parity
+  "ignore:The seawater library is deprecated:UserWarning",
 ]
 

@@ -3,14 +3,45 @@ name: Pytest
 on:
   pull_request:
     branches: ["**"]
+  push:
+    branches: [main, v3.0.0]
 
 concurrency:
   group: pytest-${{ github.ref }}
-  cancel-in-progress: true
+  # Superseded PR runs are cancelled, but every push to a protected branch is tested
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
 
 jobs:
   pytest:
-    name: Run Pytest
+    name: Pytest (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+
+      # --locked fails if uv.lock is out of date with pyproject.toml instead of re-resolving
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Run pytest
+        run: uv run --locked pytest
+
+  pytest-lowest:
+    name: Pytest (lowest dependencies, Python 3.11)
     runs-on: ubuntu-latest
 
     steps:
@@ -19,9 +50,18 @@ jobs:
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.11"
+          enable-cache: true
 
-      - name: Install dependencies
-        run: uv sync
+      # Installs the oldest versions allowed by the lower bounds in pyproject.toml. uv pip is
+      # used instead of uv sync because it ignores the dev dependency group, whose pins would
+      # otherwise override the plot extra's lower bounds.
+      - name: Install lowest direct dependencies
+        run: |
+          uv venv
+          uv pip install --resolution lowest-direct -e ".[plot]" "pytest>=9.1"
+          uv pip list
 
       - name: Run pytest
-        run: uv run pytest
+        run: .venv/bin/python -m pytest
