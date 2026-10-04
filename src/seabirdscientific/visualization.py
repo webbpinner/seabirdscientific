@@ -10,9 +10,16 @@ from typing import Literal
 
 import numpy as np
 import pandas as pd
-import plotly.graph_objects as go
 import xarray as xr
-from plotly import subplots
+
+try:
+    import plotly.graph_objects as go
+    from plotly import subplots
+except ImportError as error:
+    raise ImportError(
+        "seabirdscientific.visualization requires plotly. "
+        "Install it with: pip install seabirdscientific[plot]"
+    ) from error
 
 from seabirdscientific.interpret_sbs_variable import interpret_sbs_variable
 

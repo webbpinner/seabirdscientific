@@ -40,8 +40,15 @@ Version 3 adds ``xarray`` as a core dependency, and the optional dependency
 groups have been reorganized. The single ``dev`` extra has been replaced with
 more focused groups:
 
-- ``notebooks``: dependencies for running the example notebooks.
-- ``docs``: dependencies for building the documentation.
+- ``plot``: matplotlib and plotly, needed by ``visualization`` and
+  ``utils.plot``.
+- ``notebooks``: dependencies for running the example notebooks (includes
+  ``plot``).
+- ``docs``: dependencies for building the documentation (includes ``plot``).
+
+matplotlib and plotly are no longer installed with the base package. Code that
+uses ``visualization`` or ``utils.plot`` must install the ``plot`` extra, or
+importing ``visualization`` raises an ``ImportError`` naming it.
 
 Installing the base package is unchanged:
 
