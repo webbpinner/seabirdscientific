@@ -3,9 +3,10 @@
 import warnings
 from enum import EnumMeta
 
-import matplotlib.pyplot as plt
 import numpy as np
-from line_profiler import LineProfiler
+
+# matplotlib and line_profiler are optional and imported inside the functions that use them,
+# so the core modules (which import WarnAllMembersMeta from here) don't depend on them.
 
 
 def close_enough(
@@ -59,6 +60,13 @@ def plot(**kwargs: np.ndarray):
     :param kwargs: the dictionary to plot
     """
 
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError as error:
+        raise ImportError(
+            "utils.plot requires matplotlib. Install it with: pip install seabirdscientific[plot]"
+        ) from error
+
     _, ax = plt.subplots(figsize=(20, 10))
     for key, value in kwargs.items():
         x = range(len(value))
@@ -104,6 +112,13 @@ def profile(fun):
 
     :param fun: This is implicitly the function below the decorator
     """
+
+    try:
+        from line_profiler import LineProfiler
+    except ImportError as error:
+        raise ImportError(
+            "utils.profile requires line_profiler. Install it with: pip install line-profiler"
+        ) from error
 
     def wrapper(*args, **kwargs):
         lp = LineProfiler()
