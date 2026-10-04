@@ -1,6 +1,6 @@
 [project]
 name = "seabirdscientific"
-version = "3.0.0a40"
+version = "3.0.0a41"
 description = "Sea-Bird Scientific Community Toolkit"
 readme = "README.md"
 license = "MIT"
@@ -101,6 +101,11 @@ src = [
 
 [tool.ruff.lint]
 ignore = ["DTZ"]
+
+[tool.coverage.report]
+# Applies whenever coverage is collected (CI runs pytest --cov). Set a point below the measured
+# total, so coverage can only ratchet up; raise it as tests are added.
+fail_under = 87
 
 [tool.pytest.ini_options]
 testpaths = [
