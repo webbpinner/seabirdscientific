@@ -68,13 +68,35 @@ class TestContourFromTSP:
         )
         assert np.allclose(result.z_mat, expected, rtol=0, atol=1e-12)
 
-    def test_grid_spans_salinity_data(self):
+    # Coldest water above 10 C, below 10 C, and below 0 C. The old percentage-based padding
+    # only covered the first
+    @pytest.mark.parametrize(
+        "temperature",
+        [
+            np.array([25.0, 20.0, 15.0, 12.0]),
+            np.array([13.4, 9.3, 7.7, 5.6]),
+            np.array([1.0, -0.5, -1.2, -1.8]),
+        ],
+        ids=["warm", "temperate", "polar"],
+    )
+    def test_grid_covers_data_with_fixed_padding(self, temperature):
+        salinity = np.array([33.2, 33.9, 34.1, 34.3])
+        pressure = np.array([10.0, 100.0, 300.0, 500.0])
+
+        result = sc.contour_from_t_s_p(temperature, salinity, pressure)
+
+        assert np.isclose(result.y_vec[0], np.nanmin(result.y) - sc.TEMPERATURE_GRID_PADDING)
+        assert result.y_vec[-1] >= np.nanmax(result.y) + sc.TEMPERATURE_GRID_PADDING
+        assert np.isclose(result.x_vec[0], np.nanmin(result.x) - sc.SALINITY_GRID_PADDING)
+        assert result.x_vec[-1] >= np.nanmax(result.x) + sc.SALINITY_GRID_PADDING
+
+    def test_grid_steps_are_exact(self):
         result = sc.contour_from_t_s_p(
             TEMPERATURE, SALINITY, PRESSURE, lat=LATITUDE, lon=LONGITUDE
         )
 
-        assert result.x_vec[0] <= np.nanmin(result.x)
-        assert result.x_vec[-1] >= np.nanmax(result.x)
+        assert np.allclose(np.diff(result.y_vec), sc.TEMPERATURE_GRID_STEP, rtol=0, atol=1e-12)
+        assert np.allclose(np.diff(result.x_vec), sc.SALINITY_GRID_STEP, rtol=0, atol=1e-12)
 
     def test_min_salinity_excludes_samples(self):
         result = sc.contour_from_t_s_p(
@@ -161,3 +183,18 @@ class TestContourFromTCP:
         }
 
         assert np.array_equal(result.z_mat, expected.z_mat)
+
+
+class TestGridVector:
+    def test_exact_multiple_of_step_has_no_extra_point(self):
+        # span of exactly 2.0 with padding 0 and step 0.5 is 5 points, 0.0 to 2.0
+        result = sc._grid_vector(np.array([0.0, 2.0]), step=0.5, padding=0)
+
+        assert np.allclose(result, [0.0, 0.5, 1.0, 1.5, 2.0], rtol=0, atol=1e-12)
+
+    def test_reaches_past_maximum_and_ignores_nan(self):
+        result = sc._grid_vector(np.array([np.nan, 0.0, 1.05]), step=0.5, padding=0.1)
+
+        assert np.isclose(result[0], -0.1)
+        assert result[-1] >= 1.15
+        assert result[-2] < 1.15
