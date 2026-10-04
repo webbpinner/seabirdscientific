@@ -1,14 +1,20 @@
 name: Publish Docs
 
 on:
+  # Pull requests build the docs as a check but never deploy
   pull_request:
     branches:
       - main
       - v3.0.0
+  # Merges to main build and deploy to GitHub Pages
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
+# Only the deploy job gets write access, so pull request runs stay read-only
 permissions:
-  pages: write
-  id-token: write
+  contents: read
 
 jobs:
   build:
@@ -17,16 +23,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.12"
+          enable-cache: true
 
-      - run: pip install ".[plot]"
-      - run: pip install sbsfuro
-      - run: pip install sphinx
-      - run: pip install sphinx-mdinclude
+      # The docs extra pins the Sphinx toolchain and includes the plot extra for autodoc
+      - name: Install dependencies
+        run: uv sync --locked --no-dev --extra docs
 
-      - run: sphinx-build -b html -a -E docs/source _build/html
+      # -W fails the build on any warning (broken references, malformed reST, autodoc import
+      # errors); --keep-going reports all of them first
+      - name: Build docs
+        run: |
+          uv run --locked --no-dev --extra docs \
+            sphinx-build -W --keep-going -b html -a -E docs/source _build/html
 
       - uses: actions/upload-pages-artifact@v3
         with:
@@ -34,10 +46,20 @@ jobs:
 
   deploy:
     needs: build
-    if: github.ref == 'refs/heads/main'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    # Never cancel a deployment in progress; a newer merge replaces any deployment still queued
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - uses: actions/deploy-pages@v4
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

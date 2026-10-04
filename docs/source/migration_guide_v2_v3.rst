@@ -195,7 +195,7 @@ The ``buoyancy`` and ``buoyancy_frequency`` functions have moved from
 deprecated wrappers.
 
 ``buoyancy`` now only uses TEOS-10 equations, a new EOS-80 based function
-is now in ``eos80_conversion ``. 
+is now in ``eos80_conversion``.
 
 .. code-block:: python
 

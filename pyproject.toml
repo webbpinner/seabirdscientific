@@ -1,6 +1,7 @@
 [project]
 name = "seabirdscientific"
-version = "3.0.0a41"
+# Local integration of all fork PR branches; never sent upstream
+version = "3.0.0a41+fork"
 description = "Sea-Bird Scientific Community Toolkit"
 readme = "README.md"
 license = "MIT"
