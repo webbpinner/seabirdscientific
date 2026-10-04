@@ -1,6 +1,7 @@
 [project]
 name = "seabirdscientific"
-version = "3.0.0a36"
+# Local integration of all fork PR branches; never sent upstream
+version = "3.0.0a41+fork"
 description = "Sea-Bird Scientific Community Toolkit"
 readme = "README.md"
 license = "MIT"
@@ -22,25 +23,31 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
 ]
+# Lower bounds are the oldest versions the test suite passes with on the oldest supported
+# Python. Exact versions for development are pinned in uv.lock.
 dependencies = [
-  "gsw ~= 3.6",
-  "line-profiler ~= 5.0",
-  "matplotlib ~= 3.11",
-  "numpy ~= 2.4",
-  "pandas ~= 3.0",
-  "plotly ~= 6.9",
-  "scipy ~= 1.17",
-  "seawater ~= 3.3",
-  "xarray ~= 2026.7",
+  "gsw >= 3.6.19, < 4",  # first release built against numpy 2
+  "numpy >= 2.0, < 3",
+  "pandas >= 2.2.2, < 4",  # first release built against numpy 2
+  "scipy >= 1.13, < 2",
+  "seawater >= 3.3.5, < 4",  # 3.3.0 sdist fails to build
+  "xarray >= 2024.10",  # calendar versioned, so no upper bound
 ]
 
 [project.optional-dependencies]
+plot = [
+  "matplotlib >= 3.9, < 4",
+  "plotly >= 5.24, < 7",
+]
+
 notebooks = [
+  "seabirdscientific[plot]",
   "ipykernel ~= 7.3",
   "nbformat ~= 5.10",
 ]
 
 docs = [
+  "seabirdscientific[plot]",
   "sbsfuro ~= 0.1",
   "sphinx ~= 9.0",
   "sphinx-mdinclude ~= 0.6",
@@ -50,9 +57,12 @@ docs = [
 dev = [
   "ipykernel ~= 7.3",
   "kaleido ~= 1.3",
+  "line-profiler ~= 5.0",
+  "matplotlib ~= 3.11",
   "nbconvert[webpdf] ~= 7.17",
   "nbformat ~= 5.10",
   "notebook ~= 7.6",
+  "plotly ~= 6.9",
   "ruff ~= 0.16",
   "pytest ~= 9.1",
   "pytest-cov ~= 7.1",
@@ -93,6 +103,11 @@ src = [
 [tool.ruff.lint]
 ignore = ["DTZ"]
 
+[tool.coverage.report]
+# Applies whenever coverage is collected (CI runs pytest --cov). Set a point below the measured
+# total, so coverage can only ratchet up; raise it as tests are added.
+fail_under = 87
+
 [tool.pytest.ini_options]
 testpaths = [
   "tests"
@@ -101,5 +116,14 @@ norecursedirs = [
   "__pycache__",
   "resources",
   "results",
+]
+# Warnings fail the tests, so deprecations in dependencies surface early. CI installs exact
+# versions from uv.lock (except the lowest-dependencies job), so new upstream releases can't
+# break it unexpectedly. List tolerated third-party warnings here with a reason.
+filterwarnings = [
+  "error",
+  # seawater warns on import that it's deprecated, but eos80_* intentionally use it for
+  # SeaSoft parity
+  "ignore:The seawater library is deprecated:UserWarning",
 ]
 
