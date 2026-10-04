@@ -25,6 +25,12 @@ On Linux/macOS:
 python3 -m pip install seabirdscientific
 ```
 
+The plotting functions in `seabirdscientific.visualization` and `seabirdscientific.utils.plot` need the optional `plot` extra, which installs matplotlib and plotly:
+
+``` bash
+python3 -m pip install "seabirdscientific[plot]"
+```
+
 For additional information see the [Python.org Installing Packages](https://packaging.python.org/en/latest/tutorials/installing-packages/#installing-packages) reference.
 
 ## Example package use within python code
