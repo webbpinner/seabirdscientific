@@ -37,8 +37,13 @@ jobs:
       - name: Install dependencies
         run: uv sync --locked
 
+      # Coverage is shown in the job's log and summary page
       - name: Run pytest
-        run: uv run --locked pytest
+        run: |
+          echo "### Coverage (Python ${{ matrix.python-version }})" >> "$GITHUB_STEP_SUMMARY"
+          uv run --locked pytest --cov=seabirdscientific \
+            --cov-report=term-missing:skip-covered \
+            --cov-report=markdown-append:"$GITHUB_STEP_SUMMARY"
 
   pytest-lowest:
     name: Pytest (lowest dependencies, Python 3.11)
