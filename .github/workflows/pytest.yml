@@ -16,12 +16,24 @@ permissions:
 
 jobs:
   pytest:
-    name: Pytest (Python ${{ matrix.python-version }})
-    runs-on: ubuntu-latest
+    name: Pytest (${{ matrix.os }}, Python ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest]
         python-version: ["3.11", "3.12", "3.13", "3.14"]
+        # One Python version on the other platforms catches OS-specific behavior (paths,
+        # encodings, floating point) without multiplying the matrix
+        include:
+          - os: macos-latest
+            python-version: "3.13"
+          - os: windows-latest
+            python-version: "3.13"
+    # bash on every OS, including Windows, so run steps behave the same everywhere
+    defaults:
+      run:
+        shell: bash
 
     steps:
       - name: Checkout repository
@@ -40,7 +52,7 @@ jobs:
       # Coverage is shown in the job's log and summary page
       - name: Run pytest
         run: |
-          echo "### Coverage (Python ${{ matrix.python-version }})" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Coverage (${{ matrix.os }}, Python ${{ matrix.python-version }})" >> "$GITHUB_STEP_SUMMARY"
           uv run --locked pytest --cov=seabirdscientific \
             --cov-report=term-missing:skip-covered \
             --cov-report=markdown-append:"$GITHUB_STEP_SUMMARY"
