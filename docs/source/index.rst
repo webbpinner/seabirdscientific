@@ -28,6 +28,13 @@ Mac/Linux:
 
    python3 -m pip install seabirdscientific
 
+The plotting functions in ``visualization`` and ``utils.plot`` need the optional
+``plot`` extra, which installs matplotlib and plotly:
+
+.. code-block:: bash
+
+   python3 -m pip install "seabirdscientific[plot]"
+
 Example Usage:
 
 .. code-block:: python

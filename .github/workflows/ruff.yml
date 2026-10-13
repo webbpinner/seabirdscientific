@@ -3,10 +3,15 @@ name: Ruff Linter
 on:
   pull_request:
     branches: ["**"]
+  push:
+    branches: [main, v3.0.0]
 
 concurrency:
   group: ruff-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
 
 jobs:
   ruff:
@@ -19,11 +24,14 @@ jobs:
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
 
+      # --locked fails if uv.lock is out of date with pyproject.toml instead of re-resolving
       - name: Install dependencies
-        run: uv sync
+        run: uv sync --locked
 
       - name: Run ruff check and ruff format
         run: |
-          uv run ruff check .
-          uv run ruff format --check .
+          uv run --locked ruff check .
+          uv run --locked ruff format --check .
