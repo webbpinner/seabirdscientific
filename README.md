@@ -28,6 +28,12 @@ py -m pip install seabirdscientific
 python3 -m pip install seabirdscientific
 ```
 
+The plotting functions in `seabirdscientific.visualization` and `seabirdscientific.utils.plot` need the optional `plot` extra, which installs matplotlib and plotly:
+
+``` bash
+python3 -m pip install "seabirdscientific[plot]"
+```
+
 ## Contributing to the Toolkit
 
 If you have code that you would like to contribute to the SBS community toolkit please see the [Toolkit Contribution Guidelines](https://github.com/Sea-BirdScientific/seabirdscientific/blob/main/CONTRIBUTING.md).
