@@ -76,6 +76,8 @@ class TestOptionalDependencies:
 
 def test_utils_profile_returns_the_result(capsys):
     # Reading the result back with locals() fails on Python 3.13+ (PEP 667)
+    # line-profiler is dev-only, so the lowest-dependencies job doesn't have it
+    pytest.importorskip("line_profiler")
     from seabirdscientific.utils import profile
 
     @profile
