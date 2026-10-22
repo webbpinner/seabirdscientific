@@ -66,6 +66,8 @@ class TestImportDependencies:
         assert result.returncode == 0, result.stderr
 
     def test_utils_profile_still_profiles(self):
+        # line-profiler is dev-only, so the lowest-dependencies job doesn't have it
+        pytest.importorskip("line_profiler")
         result = run_python(
             """
             from seabirdscientific.utils import profile
@@ -79,3 +81,33 @@ class TestImportDependencies:
         )
         assert result.returncode == 0, result.stderr
         assert "Line #" in result.stdout  # line_profiler's report
+
+    def test_visualization_import_error_names_plot_extra(self):
+        result = run_python(
+            "import seabirdscientific.visualization", block_plotting_and_profiling=True
+        )
+        assert result.returncode != 0
+        assert "pip install seabirdscientific[plot]" in result.stderr
+
+    def test_utils_plot_error_names_plot_extra(self):
+        result = run_python(
+            """
+            import numpy as np
+            from seabirdscientific.utils import plot
+            plot(x=np.zeros(3))
+            """,
+            block_plotting_and_profiling=True,
+        )
+        assert result.returncode != 0
+        assert "pip install seabirdscientific[plot]" in result.stderr
+
+    def test_utils_profile_error_names_line_profiler(self):
+        result = run_python(
+            """
+            from seabirdscientific.utils import profile
+            profile(print)
+            """,
+            block_plotting_and_profiling=True,
+        )
+        assert result.returncode != 0
+        assert "pip install line-profiler" in result.stderr
