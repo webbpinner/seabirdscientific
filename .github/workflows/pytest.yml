@@ -49,9 +49,14 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
-      # Coverage is shown in the job's log, and as a table on the job's summary page
+      # Coverage is shown in the job's log, and as a table on the job's summary page. The job fails
+      # if total coverage drops below the floor, which sits just under the measured total so it can
+      # only ratchet up; raise it as tests are added. It's set here rather than in pyproject.toml,
+      # so running a few tests locally with --cov doesn't fail on coverage.
       - name: Run pytest
-        run: uv run pytest --cov=seabirdscientific --cov-report=term-missing:skip-covered
+        run: |
+          uv run pytest --cov=seabirdscientific --cov-fail-under=87 \
+            --cov-report=term-missing:skip-covered
 
       # coverage's own markdown report works with every pytest-cov the dev group allows
       # (pytest-cov's markdown-append report needs 6.3 or later)
